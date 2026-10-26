@@ -84,14 +84,12 @@ load_dotenv()
 app = Flask(__name__)
 app.config["SECRET_KEY"] = os.environ["SECRET_KEY"]
 app.config["SESSION_TYPE"] = "filesystem"
-app.config["SESSION_FILE_DIR"] = os.path.join(
-    app.root_path,
-    "flask_session"
-)
+app.config["SESSION_FILE_DIR"] = "/tmp/flask_session"
 app.config["SESSION_PERMANENT"] = False
 app.config["SESSION_USE_SIGNER"] = True
 
 Session(app)
+
 
 
 initialize_database()
