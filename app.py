@@ -29,10 +29,6 @@ from services.skill_gap import generate_skill_gap
 from database.database import (
     initialize_database,
     save_resume,
-)
-from database.database import (
-    initialize_database,
-    save_resume,
     get_latest_resume,
     save_job_match,
     get_latest_job_match,
@@ -86,6 +82,7 @@ load_dotenv()
 
 
 app = Flask(__name__)
+app.config["SECRET_KEY"] = os.environ["SECRET_KEY"]
 app.config["SESSION_TYPE"] = "filesystem"
 app.config["SESSION_FILE_DIR"] = os.path.join(
     app.root_path,
@@ -96,7 +93,6 @@ app.config["SESSION_USE_SIGNER"] = True
 
 Session(app)
 
-app.secret_key = "careerpilot-development-key"
 
 initialize_database()
 def login_required(function):
@@ -111,20 +107,14 @@ def login_required(function):
 
     return decorated_function
 
-# ---------------------------------------------------------
 # Configuration
-# ---------------------------------------------------------
 
 UPLOAD_FOLDER = "uploads"
 ALLOWED_EXTENSIONS = {"pdf"}
 
 app.config["UPLOAD_FOLDER"] = UPLOAD_FOLDER
-app.secret_key = "careerpilot-development-key"
 
-
-# ---------------------------------------------------------
 # Helper Functions
-# ---------------------------------------------------------
 
 def allowed_file(filename):
     """Check whether the uploaded file is a PDF."""
@@ -152,10 +142,7 @@ def extract_pdf_text(file_path):
 
     return "\n\n".join(pages_text)
 
-
-# ---------------------------------------------------------
 # Home Page
-# ---------------------------------------------------------
 
 @app.route("/")
 def home():
@@ -168,9 +155,8 @@ def home():
 @login_required
 def career_assistant():
 
-    # -------------------------------------------------
     # Load conversation history
-    # -------------------------------------------------
+ 
     conversation = session.get(
         "career_assistant_conversation",
         []
@@ -181,9 +167,8 @@ def career_assistant():
         False
     )
 
-    # -------------------------------------------------
     # Handle user message
-    # -------------------------------------------------
+
     if request.method == "POST":
 
         question = request.form.get(
@@ -191,9 +176,7 @@ def career_assistant():
             ""
         ).strip()
 
-        # -------------------------------------------------
         # Validate question
-        # -------------------------------------------------
         if not question:
 
             flash(
@@ -204,9 +187,7 @@ def career_assistant():
                 url_for("career_assistant")
             )
 
-        # -------------------------------------------------
         # If conversation has already ended
-        # -------------------------------------------------
         if conversation_ended:
 
             return redirect(
@@ -214,15 +195,11 @@ def career_assistant():
             )
 
 
-        # =================================================
         # CHECK WHETHER USER WANTS TO END THE CONVERSATION
-        # =================================================
 
         if is_exit_intent(question):
 
-            # ---------------------------------------------
             # Save user's final message
-            # ---------------------------------------------
 
             conversation.append({
                 "role": "user",
@@ -230,9 +207,7 @@ def career_assistant():
             })
 
 
-            # ---------------------------------------------
             # Add final friendly AI message
-            # ---------------------------------------------
 
             final_message = (
                 "You're very welcome! "
@@ -248,9 +223,7 @@ def career_assistant():
             })
 
 
-            # ---------------------------------------------
             # Save ended state
-            # ---------------------------------------------
 
             session[
                 "career_assistant_conversation"
@@ -1035,14 +1008,6 @@ def upload_resume():
     resume_text,
     resume_score
 )
-    # Save extracted text temporarily
-    with open(
-        "resume_text.txt",
-        "w",
-        encoding="utf-8"
-    ) as text_file:
-
-        text_file.write(resume_text)
 
     # Display resume analysis
     return render_template(
